@@ -1,0 +1,52 @@
+server:
+  port: 8080
+  # Define a porta em que o servidor deve escutar. 8080 é a porta padrão para aplicações web.
+
+  servlet:
+    context-path: /api
+    # Define o caminho do contexto da aplicação. O contexto da aplicação é o prefixo das URLs da aplicação.
+    # Por exemplo, se o contexto da aplicação for "/api", a URL "/api/videos" será mapeada
+  compression:
+    enabled: true
+    # Ativa a compressão de resposta. Isso pode melhorar o desempenho ao reduzir o tamanho dos dados enviados ao cliente.
+
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    # Especifica os tipos MIME que devem ser comprimidos. Aqui, são incluídos tipos comuns de texto e JavaScript.
+
+    min-response-size: 1024
+    # Define o tamanho mínimo da resposta para que a compressão seja aplicada. Respostas menores que 1024 bytes não serão comprimidas.
+
+  undertow:
+    threads:
+      worker: 64
+      # Define o número de threads de trabalho do Undertow. Essas threads lidam com tarefas não bloqueantes.
+      # O valor deve ser alto, especialmente em máquinas com muitos núcleos de CPU, para lidar eficientemente com muitas solicitações simultâneas.
+
+      io: 4
+      # Define o número de threads de E/S (Entrada/Saída).
+      # Uma thread de E/S por núcleo de CPU é um bom padrão, pois essas threads lidam com operações de E/S bloqueantes e não bloqueantes.
+
+
+#HIKARI É UM POOL DE CONEXÕES QUE O SPRING BOOT USA MUITO BOM
+#CONFIGURAÇÃO DE ALTA PERFORMANCE
+spring:
+  datasource:
+    url: jdbc:mysql://${mysql.url}/${mysql.schema}?useSSL=true&serverTimezone=UTC&characterEncoding=UTF-8
+    username: ${mysql.username}
+    password: ${mysql.password}
+    hikari:
+      auto-commit: false # Desabilita o auto-commit para aumentar a performance ao máximo. DADO QUE AQUI, O FRAMEWORK QUE CUIDA DA TRANSAACTION
+      connection-timeout: 250 # É uma configuração em milliseconds. O ideal é manter baixo para que estoure timeout logo e não prenda as threads.
+      max-lifetime: 600000 # Tempo máximo que uma conexão pode ficar aberta (10 min) - security.
+      maximum-pool-size: 20 # Mantemos até no máx 20 conexões com o banco de dados. O ideal é manter baixo mesmo, pois é algo custoso para o banco gerenciar. https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
+      minimum-idle: 10 # Mantemos no mínimo 10 conexões com o banco de dados. O ideal é manter baixo mesmo, pois é algo custoso para o banco gerenciar.
+      pool-name: master # Nome do pool de conexões. É útil para debugar.
+  jpa:
+    open-in-view: false
+    show-sql: true # Mostra o SQL gerado pelo Hibernate no log.
+    hibernate:
+      ddl-auto: none # Desabilita a criação automática de tabelas pelo Hibernate.
+    properties:
+      "[hibernate.dialect]": org.hibernate.dialect.MySQL5InnoDBDialect # Define o dialeto do Hibernate para MySQL.
+      "[hibernate.generate_statistics]": false # Desabilita a geração de estatísticas pelo Hibernate.
+      "[hibernate.connection.provider_disables_autocommit]": true # PRA NÃO FICAR USANDO UM POOL PRA VER O AUTOCOMMIT

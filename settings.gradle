@@ -1,0 +1,5 @@
+rootProject.name = 'gaje-khan-backend'
+include 'domain'
+include 'application'
+include 'infrastructure'
+
